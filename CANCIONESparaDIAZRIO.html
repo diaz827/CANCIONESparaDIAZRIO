@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CANCIONESparaDIAZRIO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #000000;
+    --surface: #111111;
+    --surface2: #1c1c1c;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.2);
+    --text: #ffffff;
+    --muted: #999999;
+    --green: #cc0000;
+    --green-light: #ff2222;
+    --green-dim: rgba(204,0,0,0.15);
+    --amber: #ff5555;
+    --amber-dim: rgba(255,85,85,0.15);
+  }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; }
+  body { display: flex; flex-direction: column; height: 100vh; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; border-bottom: 1px solid var(--border);
+    background: var(--surface); flex-shrink: 0;
+  }
+  .logo { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+  .logo span { color: var(--green-light); }
+  #status-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border2);
+    background: var(--surface2); font-size: 12px; color: var(--muted);
+    font-family: 'DM Mono', monospace; transition: all 0.3s;
+  }
+  #status-pill.active { border-color: var(--green); color: var(--green-light); background: var(--green-dim); }
+  #status-pill.detecting { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+  #dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); transition: background 0.3s; flex-shrink: 0; }
+  #status-pill.active #dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  #status-pill.detecting #dot { background: var(--amber); box-shadow: 0 0 6px var(--amber); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+
+  .layout { display: grid; grid-template-columns: 340px 1fr; flex: 1; min-height: 0; overflow: hidden; }
+
+  .left-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+
+  .cam-section { position: relative; background: #000; flex-shrink: 0; }
+  #cam { width: 100%; display: block; transform: scaleX(-1); aspect-ratio: 4/3; object-fit: cover; max-height: 255px; }
+  #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); pointer-events: none; }
+
+  #gesture-badge {
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.8); border: 1px solid var(--border2);
+    color: #fff; padding: 4px 14px; border-radius: 999px;
+    font-size: 12px; font-family: 'DM Mono', monospace;
+    opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap;
+  }
+  #gesture-badge.show { opacity: 1; }
+
+  #hold-bar-wrap { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
+  #hold-bar { height: 100%; width: 0%; background: var(--green); transition: width 0.05s linear; }
+
+  .gestures-panel { padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .panel-title { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 7px; }
+
+  .gesture-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .gc {
+    padding: 6px 6px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface2); text-align: center; transition: all 0.2s;
+  }
+  .gc .em { font-size: 16px; display: block; margin-bottom: 2px; }
+  .gc .gc-name { font-size: 10px; font-weight: 600; color: var(--text); margin-bottom: 1px; }
+  .gc .gc-action { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .gc.active { border-color: var(--green); background: var(--green-dim); }
+  .gc.active .gc-name { color: var(--green-light); }
+  .gc.holding { border-color: var(--amber); background: var(--amber-dim); }
+  .gc.holding .gc-name { color: var(--amber); }
+  .gc-wake { border-color: var(--green) !important; background: var(--green-dim) !important; }
+  .gc-wake .gc-name { color: var(--green-light) !important; }
+  .gc-wake .gc-action { color: var(--green-light) !important; }
+  .gc-locked { opacity: 0.35; }
+  .gc-locked .gc-action::before { content: "🔒 "; }
+  .gc.unlocked { opacity: 1; }
+  #gesture-mode-bar {
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 5px 12px; font-size: 11px; font-family: 'DM Mono', monospace;
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    color: var(--muted); flex-shrink: 0; transition: all 0.3s;
+  }
+  #gesture-mode-bar.armed { background: var(--green-dim); color: var(--green-light); border-color: var(--green); }
+  #mode-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  #gesture-mode-bar.armed #mode-dot { background: var(--green-light); box-shadow: 0 0 5px var(--green); animation: pulse 1s infinite; }
+
+  .controls-section { padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  #start-btn {
+    width: 100%; padding: 8px; border-radius: 8px;
+    background: var(--green); color: #fff; border: none; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    transition: background 0.2s;
+  }
+  #start-btn:hover { background: #aa0000; }
+  #start-btn:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+  .hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 6px; font-family: 'DM Mono', monospace; }
+
+  .videos-section { padding: 10px 12px; flex: 1; overflow-y: auto; min-height: 0; }
+  .vi {
+    display: flex; align-items: center; gap: 8px; padding: 7px 9px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface2);
+    cursor: pointer; transition: all 0.15s; margin-bottom: 5px;
+  }
+  .vi:hover { border-color: var(--border2); }
+  .vi.current { border-color: var(--green); background: var(--green-dim); }
+  .vi-n {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; flex-shrink: 0; font-family: 'DM Mono', monospace; color: var(--muted);
+  }
+  .vi.current .vi-n { background: var(--green); color: #fff; }
+  .vi-info { flex: 1; min-width: 0; }
+  .vi-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vi.current .vi-title { color: var(--green-light); }
+  .vi-sub { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 1px; }
+
+  .right-panel { display: flex; flex-direction: column; background: #000; min-height: 0; }
+  #video-area { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; min-height: 0; }
+  #local-video { position: absolute; inset: 0; width: 100%; height: 100%; display: none; background: #000; object-fit: contain; }
+  .no-video { text-align: center; color: var(--muted); }
+  .no-video .big-em { font-size: 40px; display: block; margin-bottom: 10px; }
+  .no-video p { font-size: 13px; font-family: 'DM Mono', monospace; }
+  .no-video .h2 { font-size: 11px; color: #555; margin-top: 6px; }
+
+  .video-info-bar {
+    padding: 10px 20px; border-top: 1px solid var(--border); background: var(--surface);
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .np-label { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+  .np-title { font-size: 14px; font-weight: 600; margin-top: 2px; }
+  .nav-btns { display: flex; gap: 7px; }
+  .nav-btn {
+    padding: 6px 13px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text); cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.15s;
+  }
+  .nav-btn:hover { border-color: var(--green); color: var(--green-light); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CANCIONES<span>paraDIAZRIO</span></div>
+  <div id="status-pill"><span id="dot"></span><span id="status-txt">Sin cámara</span></div>
+</header>
+
+<div class="layout">
+  <div class="left-panel">
+    <div class="cam-section">
+      <video id="cam" autoplay muted playsinline></video>
+      <canvas id="overlay"></canvas>
+      <div id="gesture-badge"></div>
+      <div id="hold-bar-wrap"><div id="hold-bar"></div></div>
+    </div>
+
+    <div id="gesture-mode-bar"><span id="mode-dot"></span><span id="mode-label">En espera — haz 🤟 tres dedos para activar</span></div>
+    <div class="gestures-panel">
+      <div class="panel-title">Gestos disponibles</div>
+      <div class="gesture-grid">
+        <div class="gc gc-wake" id="gc-three"><span class="em">🤟</span><div class="gc-name">Tres dedos</div><div class="gc-action">⚡ Activar gestos</div></div>
+        <div class="gc gc-locked" id="gc-open"><span class="em">✋</span><div class="gc-name">Mano abierta</div><div class="gc-action">▶ Reproducir</div></div>
+        <div class="gc gc-locked" id="gc-fist"><span class="em">✊</span><div class="gc-name">Puño</div><div class="gc-action">⏸ Pausar</div></div>
+        <div class="gc gc-locked" id="gc-one"><span class="em">☝️</span><div class="gc-name">Un dedo</div><div class="gc-action">⏭ Siguiente</div></div>
+        <div class="gc gc-locked" id="gc-two"><span class="em">✌️</span><div class="gc-name">Dos dedos</div><div class="gc-action">⏮ Anterior</div></div>
+      </div>
+    </div>
+
+    <div class="controls-section">
+      <button id="start-btn">📷 Activar cámara</button>
+      <div class="hint">Mantén el gesto quieto 2 segundos para activarlo</div>
+    </div>
+
+    <div class="videos-section">
+      <div class="panel-title">Vídeos</div>
+      <div id="video-list"></div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div id="video-area">
+      <div class="no-video" id="no-video">
+        <span class="big-em">🎬</span>
+        <p>Activa la cámara y haz un gesto</p>
+        <p class="h2">✋ mano abierta para empezar</p>
+      </div>
+      <video id="local-video" controls></video>
+    </div>
+    <div class="video-info-bar">
+      <div>
+        <div class="np-label">Reproduciendo ahora</div>
+        <div class="np-title" id="now-title">—</div>
+      </div>
+      <div class="nav-btns">
+        <button class="nav-btn" id="btn-prev">⏮ Anterior</button>
+        <button class="nav-btn" id="btn-next">Siguiente ⏭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js"></script>
+<script>
+const VIDEOS = [
+  { title: "Canción 1", sub: "videoi1.mp4", file: "videoi1.mp4" },
+  { title: "Canción 2", sub: "video2.mp4", file: "video2.mp4" },
+  { title: "Canción 3", sub: "video3.mp4", file: "video3.mp4" },
+  { title: "Canción 4", sub: "video5.mp4", file: "video5.mp4" },
+  { title: "Canción 5", sub: "video6.mp4", file: "video6.mp4" },
+  { title: "Canción 6", sub: "video7.mp4", file: "video7.mp4" },
+];
+
+let currentVideo = 0, isPlaying = false, cameraOn = false;
+let lastGesture = null, gestureHoldStart = null;
+let gesturesArmed = false;
+const HOLD_WAKE_MS = 1000;  // tres dedos: 2 segundos
+const HOLD_ACTION_MS = 1000; // resto de gestos: 1 segundo
+
+const cam = document.getElementById('cam');
+const overlay = document.getElementById('overlay');
+const ctx = overlay.getContext('2d');
+const statusPill = document.getElementById('status-pill');
+const statusTxt = document.getElementById('status-txt');
+const gestureBadge = document.getElementById('gesture-badge');
+const holdBar = document.getElementById('hold-bar');
+const localVideo = document.getElementById('local-video');
+const noVideo = document.getElementById('no-video');
+const nowTitle = document.getElementById('now-title');
+const videoList = document.getElementById('video-list');
+const startBtn = document.getElementById('start-btn');
+
+function setStatus(msg, mode) {
+  statusTxt.textContent = msg;
+  statusPill.className = mode || '';
+}
+
+function buildList() {
+  videoList.innerHTML = '';
+  VIDEOS.forEach((v, i) => {
+    const el = document.createElement('div');
+    el.className = 'vi' + (i === currentVideo ? ' current' : '');
+    el.innerHTML = `<div class="vi-n">${i+1}</div><div class="vi-info"><div class="vi-title">${v.title}</div><div class="vi-sub">${v.sub}</div></div>`;
+    el.onclick = () => { currentVideo = i; loadVideo(); };
+    videoList.appendChild(el);
+  });
+  nowTitle.textContent = VIDEOS[currentVideo].title;
+}
+
+function loadVideo() {
+  const v = VIDEOS[currentVideo];
+  noVideo.style.display = 'none';
+  localVideo.style.display = 'block';
+  localVideo.src = v.file;
+  localVideo.play();
+  isPlaying = true;
+  buildList();
+}
+
+function pauseVideo() {
+  if (!isPlaying) return;
+  localVideo.pause();
+  isPlaying = false;
+  buildList();
+}
+
+function nextVideo() { currentVideo = (currentVideo + 1) % VIDEOS.length; loadVideo(); }
+function prevVideo() { currentVideo = (currentVideo - 1 + VIDEOS.length) % VIDEOS.length; loadVideo(); }
+
+document.getElementById('btn-next').onclick = nextVideo;
+document.getElementById('btn-prev').onclick = prevVideo;
+
+function setArmed(val) {
+  gesturesArmed = val;
+  const bar = document.getElementById('gesture-mode-bar');
+  const label = document.getElementById('mode-label');
+  const lockedIds = ['gc-open','gc-fist','gc-one','gc-two'];
+  if (val) {
+    bar.className = 'armed';
+    label.textContent = 'Gestos activos — haz un gesto';
+    lockedIds.forEach(g => { document.getElementById(g).className = 'gc unlocked'; });
+  } else {
+    bar.className = '';
+    label.textContent = 'En espera — haz 🤟 tres dedos para activar';
+    lockedIds.forEach(g => { document.getElementById(g).className = 'gc gc-locked'; });
+  }
+}
+
+function highlightGc(id, mode) {
+  ['gc-open','gc-fist','gc-one','gc-two'].forEach(g => {
+    const el = document.getElementById(g);
+    el.className = gesturesArmed ? 'gc unlocked' : 'gc gc-locked';
+  });
+  document.getElementById('gc-three').className = 'gc gc-wake';
+  if (id && id !== 'gc-three') document.getElementById(id).className = 'gc ' + (mode || 'active');
+  if (id === 'gc-three') document.getElementById('gc-three').className = 'gc gc-wake ' + (mode || 'active');
+}
+
+function showBadge(text) {
+  gestureBadge.textContent = text;
+  gestureBadge.classList.add('show');
+  setTimeout(() => gestureBadge.classList.remove('show'), 1600);
+}
+
+function countFingers(lm) {
+  const tips = [8, 12, 16, 20], pips = [6, 10, 14, 18];
+  let n = 0;
+  for (let i = 0; i < 4; i++) if (lm[tips[i]].y < lm[pips[i]].y) n++;
+  if (Math.abs(lm[4].x - lm[2].x) > 0.05) n++;
+  return n;
+}
+
+function classify(lm) {
+  const n = countFingers(lm);
+  // Tres dedos siempre detectado (es el gesto de wake)
+  if (n === 3) return 'three';
+  // El resto solo si está armado
+  if (!gesturesArmed) return null;
+  if (n >= 4) return 'open';
+  if (n === 0) return 'fist';
+  if (n === 1) return 'one';
+  if (n === 2) return 'two';
+  return null;
+}
+
+const ACTIONS = {
+  three: () => { setArmed(true); showBadge('⚡ Gestos activados'); },
+  open:  () => { loadVideo(); showBadge('▶ Reproduciendo'); setArmed(false); },
+  fist:  () => { pauseVideo(); showBadge('⏸ Pausado'); setArmed(false); },
+  one:   () => { nextVideo(); showBadge('⏭ Siguiente'); setArmed(false); },
+  two:   () => { prevVideo(); showBadge('⏮ Anterior'); setArmed(false); },
+};
+const GC_MAP = { three:'gc-three', open:'gc-open', fist:'gc-fist', one:'gc-one', two:'gc-two' };
+const LABELS = { three:'🤟 Tres dedos', open:'✋ Mano abierta', fist:'✊ Puño cerrado', one:'☝ Un dedo', two:'✌ Dos dedos' };
+
+function onResults(results) {
+  overlay.width = cam.videoWidth || 640;
+  overlay.height = cam.videoHeight || 480;
+  ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+  if (!results.multiHandLandmarks || !results.multiHandLandmarks.length) {
+    lastGesture = null; gestureHoldStart = null;
+    holdBar.style.width = '0%';
+    highlightGc(null);
+    setStatus('Esperando mano...', 'detecting');
+    return;
+  }
+
+  for (const lm of results.multiHandLandmarks) {
+    drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: 'rgba(255,60,60,0.7)', lineWidth: 2 });
+    drawLandmarks(ctx, lm, { color: '#ff2222', lineWidth: 1, radius: 3 });
+
+    const g = classify(lm);
+    if (g) {
+      setStatus(LABELS[g], 'detecting');
+      highlightGc(GC_MAP[g], 'holding');
+
+      if (g !== lastGesture) {
+        lastGesture = g; gestureHoldStart = Date.now();
+      } else {
+        const holdMs = g === 'three' ? HOLD_WAKE_MS : HOLD_ACTION_MS;
+        const elapsed = Date.now() - gestureHoldStart;
+        holdBar.style.width = Math.min((elapsed / holdMs) * 100, 100) + '%';
+        if (elapsed >= holdMs) {
+          gestureHoldStart = Date.now() + 3000;
+          holdBar.style.width = '0%';
+          ACTIONS[g]();
+          highlightGc(GC_MAP[g], 'active');
+          setStatus('✓ ' + LABELS[g], 'active');
+        }
+      }
+    } else {
+      lastGesture = null; gestureHoldStart = null;
+      holdBar.style.width = '0%';
+      highlightGc(null);
+    }
+  }
+}
+
+startBtn.onclick = async () => {
+  if (cameraOn) return;
+  startBtn.disabled = true;
+  startBtn.textContent = '⏳ Iniciando...';
+  setStatus('Solicitando permiso de cámara...', '');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } });
+    cam.srcObject = stream;
+    await cam.play();
+    cameraOn = true;
+
+    const hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${f}` });
+    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.72, minTrackingConfidence: 0.5 });
+    hands.onResults(onResults);
+
+    const camera = new Camera(cam, {
+      onFrame: async () => { await hands.send({ image: cam }); },
+      width: 640, height: 480
+    });
+    camera.start();
+
+    setStatus('Cámara activa', 'active');
+    startBtn.textContent = '✓ Cámara activa';
+  } catch (e) {
+    setStatus('Error: ' + (e.message || 'permiso denegado'), '');
+    startBtn.disabled = false;
+    startBtn.textContent = '📷 Reintentar';
+    cameraOn = false;
+  }
+};
+
+buildList();
+</script>
+</body>
+</html>
