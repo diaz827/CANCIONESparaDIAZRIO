@@ -51,13 +51,6 @@ README.md                   # este archivo
 .gitignore                  # excluye video4.mp4
 ```
 
-## Nota sobre video4.mp4
-
-`video4.mp4` (131 MB) **no está incluida** en el repositorio porque supera el límite de 100 MB por archivo de GitHub; tampoco aparece en el reproductor. El archivo sigue disponible en local. Para añadirlo algún día hay dos opciones:
-
-1. Subirlo con [Git LFS](https://git-lfs.com).
-2. Comprimirlo por debajo de 100 MB.
-
 ## Tecnologías
 
 - HTML, CSS y JavaScript puros (sin frameworks).
