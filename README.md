@@ -9,7 +9,7 @@ Reproductor de canciones en vídeo controlado **con gestos de mano** frente a la
 - Detección de la mano con esqueleto dibujado sobre la cámara (espejo).
 - Barra de progreso que indica cuándo se activa el gesto.
 - Diseño oscuro, responsive y a pantalla completa.
-- Un único archivo HTML: `CANCIONESparaDIAZRIO.html`.
+- Código organizado: HTML, CSS (`styles/`) y JavaScript (`script/`) por separado.
 
 ## Gestos
 
@@ -38,10 +38,13 @@ Pulsa **📷 Activar cámara**, da permiso y controla los vídeos con los gestos
 ## Estructura
 
 ```
-CANCIONESparaDIAZRIO.html   # aplicación completa (HTML + CSS + JS)
-videoi1.mp4, video2..3, video5..7.mp4   # canciones
-README.md                   # este archivo
-.gitignore                  # excluye video4.mp4
+CANCIONESparaDIAZRIO.html    # página principal
+index.html                   # redirige a la principal
+styles/styles.css            # estilos
+script/script.js             # lógica: reproductor y gestos
+videos/                      # canciones (videoi1, video2, video3, video5, video6, video7)
+README.md                    # este archivo
+.gitignore                   # excluye videos/video4.mp4
 ```
 
 ## Tecnologías
