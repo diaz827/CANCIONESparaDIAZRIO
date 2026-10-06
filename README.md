@@ -31,15 +31,14 @@ Reproductor de canciones en vídeo controlado **con gestos de mano** frente a la
 
 ## Cómo usarlo
 
-Entra en este enlace: **<https://diaz827.github.io/CANCIONESparaDIAZRIO/CANCIONESparaDIAZRIO.html>**
+Entra en este enlace: **<https://diaz827.github.io/CANCIONESparaDIAZRIO/>**
 
 Pulsa **📷 Activar cámara**, da permiso y controla los vídeos con los gestos de la tabla de arriba.
 
 ## Estructura
 
 ```
-CANCIONESparaDIAZRIO.html    # página principal
-index.html                   # redirige a la principal
+index.html                   # página principal
 styles/styles.css            # estilos
 script/script.js             # lógica: reproductor y gestos
 videos/                      # canciones (videoi1, video2, video3, video5, video6, video7)

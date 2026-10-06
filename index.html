@@ -2,10 +2,76 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0; url=CANCIONESparaDIAZRIO.html">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CANCIONESparaDIAZRIO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/styles.css">
 </head>
 <body>
-<p><a href="CANCIONESparaDIAZRIO.html">Abrir CANCIONESparaDIAZRIO</a></p>
+
+<header>
+  <div class="logo">CANCIONES<span>paraDIAZRIO</span></div>
+  <div id="status-pill"><span id="dot"></span><span id="status-txt">Sin cámara</span></div>
+</header>
+
+<div class="layout">
+  <div class="left-panel">
+    <div class="cam-section">
+      <video id="cam" autoplay muted playsinline></video>
+      <canvas id="overlay"></canvas>
+      <div id="gesture-badge"></div>
+      <div id="hold-bar-wrap"><div id="hold-bar"></div></div>
+    </div>
+
+    <div id="gesture-mode-bar"><span id="mode-dot"></span><span id="mode-label">En espera — haz 🤟 tres dedos para activar</span></div>
+    <div class="gestures-panel">
+      <div class="panel-title">Gestos disponibles</div>
+      <div class="gesture-grid">
+        <div class="gc gc-wake" id="gc-three"><span class="em">🤟</span><div class="gc-name">Tres dedos</div><div class="gc-action">⚡ Activar gestos</div></div>
+        <div class="gc gc-locked" id="gc-open"><span class="em">✋</span><div class="gc-name">Mano abierta</div><div class="gc-action">▶ Reproducir</div></div>
+        <div class="gc gc-locked" id="gc-fist"><span class="em">✊</span><div class="gc-name">Puño</div><div class="gc-action">⏸ Pausar</div></div>
+        <div class="gc gc-locked" id="gc-one"><span class="em">☝️</span><div class="gc-name">Un dedo</div><div class="gc-action">⏭ Siguiente</div></div>
+        <div class="gc gc-locked" id="gc-two"><span class="em">✌️</span><div class="gc-name">Dos dedos</div><div class="gc-action">⏮ Anterior</div></div>
+      </div>
+    </div>
+
+    <div class="controls-section">
+      <button id="start-btn">📷 Activar cámara</button>
+      <div class="hint">Mantén el gesto quieto 2 segundos para activarlo</div>
+    </div>
+
+    <div class="videos-section">
+      <div class="panel-title">Vídeos</div>
+      <div id="video-list"></div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div id="video-area">
+      <div class="no-video" id="no-video">
+        <span class="big-em">🎬</span>
+        <p>Activa la cámara y haz un gesto</p>
+        <p class="h2">✋ mano abierta para empezar</p>
+      </div>
+      <video id="local-video" controls></video>
+    </div>
+    <div class="video-info-bar">
+      <div>
+        <div class="np-label">Reproduciendo ahora</div>
+        <div class="np-title" id="now-title">—</div>
+      </div>
+      <div class="nav-btns">
+        <button class="nav-btn" id="btn-prev">⏮ Anterior</button>
+        <button class="nav-btn" id="btn-next">Siguiente ⏭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js"></script>
+<script src="script/script.js"></script>
 </body>
 </html>
