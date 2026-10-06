@@ -31,16 +31,9 @@ Reproductor de canciones en vídeo controlado **con gestos de mano** frente a la
 
 ## Cómo usarlo
 
-La cámara solo funciona en contextos seguros (`https://` o `localhost`). Por eso es mejor servir la carpeta con un servidor local que abrir el archivo con doble clic:
+Entra en este enlace: **<https://diaz827.github.io/CANCIONESparaDIAZRIO/CANCIONESparaDIAZRIO.html>**
 
-```bash
-# Con Python (viene con la mayoría de sistemas)
-python -m http.server 8000
-```
-
-Luego abre <http://localhost:8000/CANCIONESparaDIAZRIO.html> y pulsa **📷 Activar cámara**.
-
-Alternativas: usar la extensión *Live Server* de VS Code, o publicar el repositorio con **GitHub Pages** (al ser `https://`, la cámara funciona directamente).
+Pulsa **📷 Activar cámara**, da permiso y controla los vídeos con los gestos de la tabla de arriba.
 
 ## Estructura
 
